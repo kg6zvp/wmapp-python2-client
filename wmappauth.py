@@ -82,7 +82,7 @@ def checkCode(httpResponse, expectedResponse, failureMessage):
 
 def wmLogin(username, password, deviceName):
     validCreds = getToken(username, password, deviceName)
-    if !checkCode(validCreds, 200, "login"):
+    if not checkCode(validCreds, 200, "login"):
 	return False
     global tokenString
     tokenString = validCreds.content
