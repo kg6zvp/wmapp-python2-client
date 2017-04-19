@@ -90,7 +90,7 @@ def wmLogin(username, password, deviceName):
     tokenSignature = validCreds.headers['TokenSignature']
     return True
 
-def getToken():
+def getTokenString():
     global tokenString
     return tokenString
 
