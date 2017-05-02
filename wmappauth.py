@@ -1,7 +1,11 @@
 #!/usr/bin/python2
 
+# Source: http://gitlab.wmapp.mccollum.enterprises/wmapp/python2-client
+
 import json
 import requests
+import getpass
+import socket
 
 protocol = "http"
 server = "auth.wmapp.mccollum.enterprises"
@@ -17,14 +21,20 @@ renewUrl = tokenBaseUrl+"/renewToken"
 invalidationSubscriptionUrl = tokenBaseUrl+"/subscribeToInvalidation"
 tokenValidUrl = tokenBaseUrl+"/tokenValid"
 
-tokenSignature=" "
-tokenString=" "
+tokenSignature=""
+tokenString=""
 
 def readTokens():
-    with open('token.json', 'rb') as tf:
-	tokenString = tf.read()
-    with open('sigb64.txt', 'rb') as sf:
-	tokenSignature = sf.read().strip('\n').strip('\r')
+    try:
+	with open('token.json', 'r') as tf:
+	    global tokenString
+	    tokenString = tf.read()
+	with open('sigb64.txt', 'r') as sf:
+	    global tokenSignature
+	    tokenSignature = sf.read()
+	return True
+    except IOError as e:
+	return False
 
 def getToken(username, password, deviceName):
     hrs = {'Content-Type': 'application/json'}
@@ -80,6 +90,20 @@ def checkCode(httpResponse, expectedResponse, failureMessage):
 	return False
     return True
 
+def getTokenString():
+    global tokenString
+    return tokenString
+
+def getSignature():
+    global tokenSignature
+    return tokenSignature
+
+def persistTokens():
+    with open('token.json', 'w') as tf:
+	tf.write(getTokenString())
+    with open('sigb64.txt', 'w') as sf:
+	sf.write(getSignature())
+
 def wmLogin(username, password, deviceName):
     validCreds = getToken(username, password, deviceName)
     if not checkCode(validCreds, 200, "login"):
@@ -88,15 +112,20 @@ def wmLogin(username, password, deviceName):
     tokenString = validCreds.content
     global tokenSignature
     tokenSignature = validCreds.headers['TokenSignature']
+    persistTokens()
     return True
 
-def getTokenString():
-    global tokenString
-    return tokenString
+def promptLogin():
+    username = raw_input("Username: ")
+    passwd = getpass.getpass()
+    return wmLogin(username, passwd, socket.gethostname())
 
-def getSignature():
-    global tokenSignature
-    return tokenSignature
+def loadCredentials(prompt=True):
+    if readTokens():
+	return True
+    if prompt:
+	return promptLogin()
+    return False
 
 """
 Sample code:
