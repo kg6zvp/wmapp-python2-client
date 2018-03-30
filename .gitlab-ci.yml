@@ -1,0 +1,26 @@
+image: 'python:2-stretch'
+
+before_script:
+  - apt-get update && apt-get install -y git python-pip
+  - pip install requests
+
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Run dep script here"
+    - git clone --recursive "$CI_REPOSITORY_URL" wmapp-python2-client
+    - cd wmapp-python2-client
+    - git config user.email "kg6zvp@gmail.com"
+    - git config --global user.name "Sam McCollum"
+    - git remote add github "https://kg6zvp:$GITHUB_PERSONAL_ACCESS_TOKEN@github.com/kg6zvp/wmapp-python2-client.git"
+    - git push --force --follow-tags github master
+    - cd ..
+    - rm -rf wmapp-python2-client
+  only:
+    - master
+
+after_script:
+  - echo "End CI"
